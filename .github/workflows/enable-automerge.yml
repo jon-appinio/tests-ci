@@ -28,7 +28,15 @@ jobs:
       - name: Disable Auto-Merge (Label Removed)
         if: github.event.action == 'unlabeled'
         run: |
-          echo "Label 'automerge' removed. Disabling native auto-merge."
-          gh pr merge --disable ${{ github.event.pull_request.number }}
+          echo "Label 'automerge' removed. Disabling native auto-merge via API."
+          PR_NUM=${{ github.event.pull_request.number }}
+          
+          # Use gh api with the DELETE method to explicitly revoke 
+          # the auto-merge status via the REST API.
+          gh api \
+            --method DELETE \
+            "repos/${{ github.repository }}/pulls/$PR_NUM/auto_merge"
+          
+          echo "Native auto-merge disabled for PR #$PR_NUM."
         env:
           GITHUB_TOKEN: ${{ secrets.GB_TOKEN }}

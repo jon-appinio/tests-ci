@@ -1,0 +1,31 @@
+name: 1. Manage Native Auto-Merge State
+on:
+  pull_request:
+    types: [labeled, unlabeled] # Listens for both add and remove events
+
+jobs:
+  manage_auto_merge:
+    runs-on: ubuntu-latest
+    # Only proceed if the label being added/removed is 'automerge'
+    if: github.event.label.name == 'automerge'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Enable Auto-Merge (Label Added)
+        if: github.event.action == 'labeled'
+        run: |
+          # Enable auto-merge when the label is added
+          echo "Label 'automerge' applied. Enabling native auto-merge."
+          gh pr merge --auto --merge ${{ github.event.pull_request.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GB_TOKEN }}
+
+      - name: Disable Auto-Merge (Label Removed)
+        if: github.event.action == 'unlabeled'
+        run: |
+          # Disable auto-merge when the label is removed
+          echo "Label 'automerge' removed. Disabling native auto-merge."
+          gh pr merge --disable ${{ github.event.pull_request.number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GB_TOKEN }}

@@ -12,10 +12,22 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      # --- CRITICAL CHANGE: Minimal Checkout for GH CLI Context ---
+      - name: Minimal Checkout for GH CLI
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1 
+
+      # --- CRITICAL CHANGE: Explicitly Authenticate GH CLI ---
+      - name: Authenticate GitHub CLI
+        run: |
+          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GB_TOKEN }}
+
       - name: Enable Auto-Merge (Label Added)
         if: github.event.action == 'labeled'
         run: |
-          # Enable auto-merge when the label is added
           echo "Label 'automerge' applied. Enabling native auto-merge."
           gh pr merge --auto --merge ${{ github.event.pull_request.number }}
         env:
@@ -24,7 +36,6 @@ jobs:
       - name: Disable Auto-Merge (Label Removed)
         if: github.event.action == 'unlabeled'
         run: |
-          # Disable auto-merge when the label is removed
           echo "Label 'automerge' removed. Disabling native auto-merge."
           gh pr merge --disable ${{ github.event.pull_request.number }}
         env:

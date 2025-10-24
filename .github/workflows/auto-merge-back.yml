@@ -2,7 +2,7 @@ name: 2. Automated Merge-Back from Develop
 on:
   push:
     branches:
-      - develop # Only runs when develop successfully updates
+      - develop
 jobs:
   update_automerge_prs:
     runs-on: ubuntu-latest
@@ -10,6 +10,20 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      # This provides a basic Git environment for the GH CLI operations.
+      - name: Minimal Checkout for GH CLI
+        uses: actions/checkout@v4
+        with:
+          # Only fetch the default branch to establish the repo context.
+          fetch-depth: 1 
+
+      - name: Authenticate GitHub CLI
+        run: |
+          # This ensures the gh CLI is logged in using the workflow token
+          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GB_TOKEN }}
+
       - name: Find and Update Labeled PRs
         run: |
           # 1. Fetch only open PRs targeting 'develop' that have the 'automerge' label.
@@ -26,13 +40,14 @@ jobs:
           for PR_NUM in $PR_NUMBERS; do
             echo "Attempting to merge 'develop' into PR #$PR_NUM..."
             
+            # The 'gh pr update' command relies on the authentication established above.
             if gh pr update $PR_NUM --merge; then
               echo "Successfully merged develop into PR #$PR_NUM. CI will re-run."
             else
               # Merge failed (due to a conflict)
               echo "Merge failed for PR #$PR_NUM. Developer intervention required."
               
-              # --- CRITICAL STEP: Remove the 'automerge' label ---
+              # --- Conflict Handling ---
               gh pr edit $PR_NUM --remove-label automerge
               
               gh pr comment $PR_NUM --body "⚠️ Automatic update from develop failed due to merge conflicts. **The 'automerge' label has been removed.** Please resolve the conflicts manually and re-apply the 'automerge' label once CI passes."

@@ -17,13 +17,6 @@ jobs:
           # Only fetch the default branch to establish the repo context.
           fetch-depth: 1 
 
-      - name: Authenticate GitHub CLI
-        run: |
-          # This ensures the gh CLI is logged in using the workflow token
-          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GB_TOKEN }}
-
       - name: Find and Update Labeled PRs
         run: |
           # 1. Fetch only open PRs targeting 'develop' that have the 'automerge' label.

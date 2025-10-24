@@ -12,18 +12,10 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      # --- CRITICAL CHANGE: Minimal Checkout for GH CLI Context ---
       - name: Minimal Checkout for GH CLI
         uses: actions/checkout@v4
         with:
           fetch-depth: 1 
-
-      # --- CRITICAL CHANGE: Explicitly Authenticate GH CLI ---
-      - name: Authenticate GitHub CLI
-        run: |
-          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GB_TOKEN }}
 
       - name: Enable Auto-Merge (Label Added)
         if: github.event.action == 'labeled'

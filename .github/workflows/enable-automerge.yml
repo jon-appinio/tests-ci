@@ -29,8 +29,6 @@ jobs:
         if: github.event.action == 'unlabeled'
         run: |
           echo "Label 'automerge' removed. Disabling native auto-merge."
-          
-          # Use the correct GitHub CLI command to disable auto-merge
           gh pr merge --disable-auto ${{ github.event.pull_request.number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GB_TOKEN }}

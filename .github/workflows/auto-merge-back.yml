@@ -1,0 +1,50 @@
+name: 2. Automated Merge-Back from Develop
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  update_automerge_prs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # This provides a basic Git environment for the GH CLI operations.
+      - name: Minimal Checkout for GH CLI
+        uses: actions/checkout@v4
+        with:
+          # Only fetch the default branch to establish the repo context.
+          fetch-depth: 1 
+
+      - name: Find and Update Labeled PRs
+        run: |
+          # 1. Fetch only open PRs targeting 'develop' that have the 'automerge' label.
+          PR_NUMBERS=$(gh pr list --state open --base develop --label automerge --json number | jq -r '.[].number')
+          
+          if [ -z "$PR_NUMBERS" ]; then
+            echo "No open PRs with the 'automerge' label found to update. Exiting."
+            exit 0
+          fi
+          
+          echo "Found PRs with 'automerge' label: $PR_NUMBERS"
+          
+          # 2. Iterate through each labeled PR and merge 'develop' into it.
+          for PR_NUM in $PR_NUMBERS; do
+            echo "Attempting to merge 'develop' into PR #$PR_NUM..."
+            
+            # The 'gh pr update' command relies on the authentication established above.
+            if gh pr update-branch $PR_NUM; then
+              echo "Successfully merged develop into PR #$PR_NUM. CI will re-run."
+            else
+              # Merge failed (due to a conflict)
+              echo "Merge failed for PR #$PR_NUM. Developer intervention required."
+              
+              # --- Conflict Handling ---
+              gh pr edit $PR_NUM --remove-label automerge
+              
+              gh pr comment $PR_NUM --body "⚠️ Automatic update from develop failed due to merge conflicts. **The 'automerge' label has been removed.** Please resolve the conflicts manually and re-apply the 'automerge' label once CI passes."
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GB_TOKEN }}

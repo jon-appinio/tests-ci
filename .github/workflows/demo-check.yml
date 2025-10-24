@@ -40,8 +40,8 @@ jobs:
           if echo "$CHANGED_FILES" | grep -q 'README.md'; then
             
             # Check the content of the README.md in the current branch (PR head)
-            if grep -q "SKIP CI FAIL" README.md; then
-              echo "README.md contains 'SKIP CI FAIL'. Setting conclusion to failure."
+            if grep -q "FORCE CI FAIL" README.md; then
+              echo "README.md contains 'FORCE CI FAIL'. Setting conclusion to failure."
               echo "conclusion=failure" >> "$GITHUB_OUTPUT"
             else
               echo "README.md is clean. Setting conclusion to success."

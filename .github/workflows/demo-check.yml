@@ -3,10 +3,6 @@ on:
   pull_request:
     branches:
       - develop # Only runs on PRs targeting develop
-  # Optional: Also run on the feature branch directly for immediate feedback
-  push:
-    branches-ignore:
-      - develop
 
 jobs:
   slow_check:

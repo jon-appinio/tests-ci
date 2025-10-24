@@ -34,7 +34,7 @@ jobs:
             echo "Attempting to merge 'develop' into PR #$PR_NUM..."
             
             # The 'gh pr update' command relies on the authentication established above.
-            if gh pr update $PR_NUM --merge; then
+            if gh pr update-branch $PR_NUM; then
               echo "Successfully merged develop into PR #$PR_NUM. CI will re-run."
             else
               # Merge failed (due to a conflict)

@@ -6,7 +6,7 @@ on:
     types: [opened, synchronize]
     branches:
       - develop
-  
+
 jobs:
   # Job 1: Runs the slow test and determines the outcome
   slow_test_runner:
@@ -14,18 +14,18 @@ jobs:
     # Define an output to communicate the test result to the next job
     outputs:
       test_conclusion: ${{ steps.content_check.outputs.conclusion }}
-    
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         # CRITICAL: Fetch the entire history, including the base branch, for diffing
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
 
       - name: ⌛ Simulate Expensive Build/Test Time (1 minute)
         run: |
           echo "Starting long-running demo check..."
-          sleep 60s
+          sleep 30s
           echo "Demo check complete."
 
       - name: 🔍 Check Content for Success/Failure
@@ -33,10 +33,10 @@ jobs:
         run: |
           # Use git diff to compare the PR's head (current SHA) against the PR's base (target branch's SHA).
           # This captures ALL changes in the PR.
-          
+
           # Get the list of changed files in the PR
           CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
-          
+
           if echo "$CHANGED_FILES" | grep -q 'README.md'; then
             
             # Check the content of the README.md in the current branch (PR head)
@@ -56,14 +56,14 @@ jobs:
   # Job 2: Reports the final status check that Branch Protection will require
   report_status:
     runs-on: ubuntu-latest
-    needs: slow_test_runner 
-    if: always() 
-    
+    needs: slow_test_runner
+    if: always()
+
     steps:
       - name: Report Final Status Check
         run: |
           CONCLUSION=${{ needs.slow_test_runner.outputs.test_conclusion }}
-          
+
           if [ "$CONCLUSION" == "failure" ]; then
             echo "::error::Conditional Check FAILED - Status set to failure."
             exit 1 

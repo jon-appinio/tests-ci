@@ -22,10 +22,10 @@ jobs:
         with:
           fetch-depth: 0 
 
-      - name: ⌛ Simulate Expensive Build/Test Time (5 minutes)
+      - name: ⌛ Simulate Expensive Build/Test Time (1 minute)
         run: |
           echo "Starting long-running demo check..."
-          sleep 300s
+          sleep 60s
           echo "Demo check complete."
 
       - name: 🔍 Check Content for Success/Failure

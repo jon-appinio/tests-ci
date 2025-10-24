@@ -43,7 +43,7 @@ jobs:
               # --- Conflict Handling ---
               gh pr edit $PR_NUM --remove-label automerge
               
-              gh pr comment $PR_NUM --body "⚠️ Automatic update from develop failed due to merge conflicts. **The 'automerge' label has been removed.** Please resolve the conflicts manually and re-apply the 'automerge' label once CI passes."
+              gh pr comment $PR_NUM --body "⚠️ Automatic update from develop failed. **The 'automerge' label has been removed.** Please resolve the issues manually and add again the 'automerge' label."
             fi
           done
         env:

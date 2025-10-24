@@ -1,0 +1,41 @@
+name: Demo Meeting Check (Slow)
+on:
+  pull_request:
+    branches:
+      - develop # Only runs on PRs targeting develop
+  # Optional: Also run on the feature branch directly for immediate feedback
+  push:
+    branches-ignore:
+      - develop
+
+jobs:
+  slow_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: ⌛ Simulate Expensive Build/Test Time (5 mins)
+        # This command makes the workflow wait, simulating a long CI run.
+        run: |
+          echo "Starting long-running demo check..."
+          sleep 300s
+          echo "Demo check complete."
+
+      - name: ❌ Check for Content That Causes Failure
+        # This step only runs if the previous step succeeded.
+        # It checks if the README.md file was modified in the PR.
+        if: ${{ success() }}
+        run: |
+          # Use 'git diff' to check if the specific string was added in the PR's changes.
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q 'README.md'; then
+            if grep -q "SKIP CI FAIL" README.md; then
+              echo "README.md contains 'SKIP CI FAIL'. Simulation failed."
+              # Exit with a non-zero status to mark the check as failed.
+              exit 1
+            else
+              echo "README.md is clean. Simulation passed."
+            fi
+          else
+            echo "README.md was not changed. Defaulting to success."
+          fi
